@@ -1,0 +1,14 @@
+this is code for a synergy client.  perhaps a server in the future
+too.  besides a library to read/write synergy protocol messages,
+only a client has been implemented, and only partially.
+
+what it can do:
+- connect to a synergy server
+- write mousemovements to /dev/pointer to update mouse location
+- write keyboard characters to /dev/keyboard to emulate typing characters.  no conversion is being done.
+
+what is left to implement:
+- convert the keyboard codes that come from the server to something a /dev/keyboard reader understands.  handle shift/control/alt/other special keys.
+- provide a new /dev/pointer that also sends clicks
+- find out whether we need to keep writing to original /dev/pointer to update our location.  perhaps only at startup, probably not though.
+- perhaps provide a /dev/keyboard as well, that would mean the usual keyboard on the machine can not be used, so doesn't make make sense.
