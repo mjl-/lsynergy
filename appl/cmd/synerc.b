@@ -1,26 +1,25 @@
 implement Synerc;
 
 include "sys.m";
+	sys: Sys;
+	sprint: import sys;
 include "draw.m";
 include "arg.m";
 include "bufio.m";
 	bufio: Bufio;
 	Iobuf: import bufio;
 include "styx.m";
+	styx: Styx;
+	Tmsg, Rmsg: import Styx;
 include "styxservers.m";
+	styxservers: Styxservers;
+	nametree: Nametree;
+	Styxserver, Fid, Navigator: import styxservers;
+	Tree: import nametree;
 include "synergy.m";
-
-sys: Sys;
-styx: Styx;
-styxservers: Styxservers;
-nametree: Nametree;
-syn: Synergy;
-
-print, sprint, fprint, fildes: import sys;
-Tmsg, Rmsg: import Styx;
-Styxserver, Fid, Navigator: import styxservers;
+	syn: Synergy;
 Session, Msg: import syn;
-Tree: import nametree;
+
 
 dflag: int;
 addr := "net!$synergy!synergy";
@@ -65,7 +64,7 @@ init(nil: ref Draw->Context, args: list of string)
 
 	# for testing
 	addr = "net!localhost!24800";
-	name = readfile("/dev/sysname");
+	name = sysname();
 
 	arg->init(args);
 	arg->setusage(arg->progname()+" [-d] [-a addr] [-n name]");
@@ -74,7 +73,7 @@ init(nil: ref Draw->Context, args: list of string)
 		'a' =>	addr = arg->earg();
 		'n' =>	name = arg->earg();
 		'd' =>	dflag++;
-		* =>	fprint(fildes(2), "bad option\n");
+		* =>	sys->fprint(sys->fildes(2), "bad option\n");
 			arg->usage();
 		}
 	args = arg->argv();
@@ -228,25 +227,27 @@ synergyserve()
 	}
 }
 
-readfile(f: string): string
+sysname(): string
 {
-	fd := sys->open(f, Sys->OREAD);
-	if(fd == nil)
-		return "none";
-	n := sys->read(fd, buf := array[256] of byte, len buf);
-	if(n <= 0)
-		return "none";
-	return string buf[:n];
+	fd := sys->open("/dev/sysname", Sys->OREAD);
+	if(fd != nil && (n := sys->read(fd, buf := array[256] of byte, len buf)) > 0)
+		return string buf[:n];
+	return "none";
+}
+
+warn(s: string)
+{
+	sys->fprint(sys->fildes(2), "%s\n", s);
 }
 
 say(s: string)
 {
 	if(dflag)
-		fprint(fildes(2), "%s\n", s);
+		warn(s);
 }
 
 fail(s: string)
 {
-	fprint(fildes(2), "%s\n", s);
+	warn(s);
 	raise "fail:"+s;
 }

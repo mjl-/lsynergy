@@ -1,10 +1,10 @@
 implement Synergy;
 
 include "sys.m";
+	sys: Sys;
+	sprint: import sys;
 include "synergy.m";
 
-sys: Sys;
-sprint: import sys;
 
 init()
 {
