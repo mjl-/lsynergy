@@ -132,7 +132,7 @@ Msg.pack(mm: self ref Msg, d: array of byte): string
 	Keydown or Keyup =>
 		i = p16(d, i, m.id);
 		i = p16(d, i, m.modmask);
-		i = p16(d, i, m.button);
+		i = p16(d, i, m.key);
 	Keydown_10 or Keyup_10 =>
 		i = p16(d, i, m.id);
 		i = p16(d, i, m.modmask);
@@ -140,7 +140,7 @@ Msg.pack(mm: self ref Msg, d: array of byte): string
 		i = p16(d, i, m.id);
 		i = p16(d, i, m.modmask);
 		i = p16(d, i, m.repeats);
-		i = p16(d, i, m.button);
+		i = p16(d, i, m.key);
 	Keyrepeat_10 =>
 		i = p16(d, i, m.id);
 		i = p16(d, i, m.modmask);
@@ -155,13 +155,12 @@ Msg.pack(mm: self ref Msg, d: array of byte): string
 	Clipboard =>
 		i = p8(d, i, m.id);
 		i = p32(d, i, m.seq);
-		i = p32(d, i, len d-i);
+		i = p32(d, i, len d-i-4);
 		i = p32(d, i, len m.l);
 		for(l := m.l; l != nil; l = tl l) {
 			(format, buf) := *hd l;
 			i = p32(d, i, format);
-			d[i:] = buf;
-			i += len buf;
+			i = pstr(d, i, buf);
 		}
 	Info =>
 		i = p16(d, i, m.topx);
@@ -265,14 +264,14 @@ Msg.unpack(d: array of byte): (ref Msg, string)
 	tagof Msg.Keepalive =>
 		m = ref Msg.Keepalive();
 	tagof Msg.Keydown or tagof Msg.Keyup =>
-		id, modmask, button: int;
+		id, modmask, key: int;
 		(id, i) = g16(d, i);
 		(modmask, i) = g16(d, i);
-		(button, i) = g16(d, i);
+		(key, i) = g16(d, i);
 		if(tag == tagof Msg.Keydown)
-			m = ref Msg.Keydown(id, modmask, button);
+			m = ref Msg.Keydown(id, modmask, key);
 		else
-			m = ref Msg.Keyup(id, modmask, button);
+			m = ref Msg.Keyup(id, modmask, key);
 	tagof Msg.Keydown_10 or tagof Msg.Keyup_10 =>
 		id, modmask: int;
 		(id, i) = g16(d, i);
@@ -282,12 +281,12 @@ Msg.unpack(d: array of byte): (ref Msg, string)
 		else
 			m = ref Msg.Keyup_10(id, modmask);
 	tagof Msg.Keyrepeat =>
-		id, modmask, repeats, button: int;
+		id, modmask, repeats, key: int;
 		(id, i) = g16(d, i);
 		(modmask, i) = g16(d, i);
 		(repeats, i) = g16(d, i);
-		(button, i) = g16(d, i);
-		m = ref Msg.Keyrepeat(id, modmask, repeats, button);
+		(key, i) = g16(d, i);
+		m = ref Msg.Keyrepeat(id, modmask, repeats, key);
 	tagof Msg.Keyrepeat_10 =>
 		id, modmask, repeats: int;
 		(id, i) = g16(d, i);
@@ -388,9 +387,9 @@ Msg.text(mm: self ref Msg): string
 	Screensaver =>		s = sprint("started=%d", m.started);
 	Resetoptions or Infoack or Keepalive =>
 				;
-	Keydown or Keyup =>	s = sprint("id=%d modmask=%d button=%d", m.id, m.modmask, m.button);
+	Keydown or Keyup =>	s = sprint("id=%d modmask=%d key=%d", m.id, m.modmask, m.key);
 	Keydown_10 or Keyup_10 =>	s = sprint("id=%d modmask=%d", m.id, m.modmask);
-	Keyrepeat =>		s = sprint("id=%d modmask=%d repeats=%d button=%d", m.id, m.modmask, m.repeats, m.button);
+	Keyrepeat =>		s = sprint("id=%d modmask=%d repeats=%d key=%d", m.id, m.modmask, m.repeats, m.key);
 	Keyrepeat_10 =>		s = sprint("id=%d modmask=%d repeats=%d", m.id, m.modmask, m.repeats);
 	Mousedown or Mouseup =>	s = sprint("id=%d", m.id);
 	Mousemove or Mouserelmove or Mousewheel =>
@@ -399,7 +398,7 @@ Msg.text(mm: self ref Msg): string
 	Clipboard =>
 		s = sprint("id=%d seq=%d nclips=%d", m.id, m.seq, len m.l);
 		for(l := m.l; l != nil; l = tl l) {
-			s += sprint("fmt=%d buf=%q", (hd l).t0, string (hd l).t1);
+			s += sprint(", fmt=%d buf=%q", (hd l).t0, string (hd l).t1);
 		}
 	Info =>			s = sprint("topx=%d topy=%d width=%d heigh=%d warpsize=%d x=%d y=%d", m.topx, m.topy, m.width, m.height, m.warpsize, m.x, m.y);
 	Setoptions =>		s = sprint("options=%d", m.options);

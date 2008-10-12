@@ -25,15 +25,15 @@ Synergy: module {
 			started:	int;
 		Resetoptions or Infoack or Keepalive =>
 		Keydown =>
-			id, modmask, button:	int;
+			id, modmask, key:	int;
 		Keydown_10 =>
 			id, modmask:	int;
 		Keyrepeat =>
-			id, modmask, repeats, button:	int;
+			id, modmask, repeats, key:	int;
 		Keyrepeat_10 =>
 			id, modmask, repeats:	int;
 		Keyup =>
-			id, modmask, button:	int;
+			id, modmask, key:	int;
 		Keyup_10 =>
 			id, modmask:	int;
 		Mousedown or Mouseup =>
