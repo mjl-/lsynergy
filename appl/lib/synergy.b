@@ -3,12 +3,15 @@ implement Synergy;
 include "sys.m";
 	sys: Sys;
 	sprint: import sys;
+include "lists.m";
+	lists: Lists;
 include "synergy.m";
 
 
 init()
 {
 	sys = load Sys Sys->PATH;
+	lists = load Lists Lists->PATH;
 }
 
 
@@ -36,7 +39,7 @@ tagof Msg.Mousemove =>	("Mousemove",	4, "DMMV"),
 tagof Msg.Mouserelmove =>	("Mouserelmove",	4, "DMRM"),
 tagof Msg.Mousewheel =>	("Mousewheel",	4, "DMWM"),
 tagof Msg.Mousewheel_10 =>	("Mousewheel_10",	2, "DMWM"),
-tagof Msg.Clipboard =>	("Clipboard",	5, "DCLP"),	# xxx + string
+tagof Msg.Clipboard =>	("Clipboard",	0, "DCLP"),	# variable!
 tagof Msg.Info =>		("Info",	14, "DINF"),
 tagof Msg.Setoptions =>	("Setoptions",	4, "DSOP"),
 tagof Msg.Getinfo =>	("Getinfo",	0, "QINF"),
@@ -87,7 +90,11 @@ Msg.packedsize(mm: self ref Msg): int
 	size += len name;
 	pick m := mm {
 	Rhello =>	size += 4+len array of byte m.name;
-	Clipboard =>	size += 4+len m.data;
+	Clipboard =>
+		size += 1+4+4;  # id, seq, clipdatasize
+		size += 4;  # nformats
+		for(l := m.l; l != nil; l = tl l)
+			size += 4+4+len (hd l).t1;  # type, size, data
 	}
 	return size;
 }
@@ -148,7 +155,14 @@ Msg.pack(mm: self ref Msg, d: array of byte): string
 	Clipboard =>
 		i = p8(d, i, m.id);
 		i = p32(d, i, m.seq);
-		i = pstr(d, i, m.data);
+		i = p32(d, i, len d-i);
+		i = p32(d, i, len m.l);
+		for(l := m.l; l != nil; l = tl l) {
+			(format, buf) := *hd l;
+			i = p32(d, i, format);
+			d[i:] = buf;
+			i += len buf;
+		}
 	Info =>
 		i = p16(d, i, m.topx);
 		i = p16(d, i, m.topy);
@@ -306,12 +320,25 @@ Msg.unpack(d: array of byte): (ref Msg, string)
 	tagof Msg.Clipboard =>
 		id, seq: int;
 		data: array of byte;
+		if(len d < 1+4+4)
+			return (nil, "short initial data for Msg.Clipboard");
 		(id, i) = g8(d, i);
 		(seq, i) = g32(d, i);
 		(data, i) = gstr(d, i);
-		if(data == nil)
-			return (nil, "bad string in Msg.Clipboard");
-		m = ref Msg.Clipboard(id, seq, data);
+		if(data == nil || len data < 4)
+			return (nil, "short clipboard data in Msg.Clipboard");
+		(nclip, j) := g32(data, 0);
+		l: list of ref (int, array of byte);
+		while(nclip-- > 0) {
+			if(len data < 8)
+				return (nil, "short clipboard format for Msg.Clipboard");
+			format: int;
+			buf: array of byte;
+			(format, j) = g32(data, j);
+			(buf, j) = gstr(data, j);
+			l = ref(format, buf)::l;
+		}
+		m = ref Msg.Clipboard(id, seq, lists->reverse(l));
 	tagof Msg.Info =>
 		topx, topy, width, height, warpsize, x, y: int;
 		(topx, i) = g16(d, i);
@@ -369,7 +396,11 @@ Msg.text(mm: self ref Msg): string
 	Mousemove or Mouserelmove or Mousewheel =>
 				s = sprint("x=%d y=%d", m.x, m.y);
 	Mousewheel_10 =>	s = sprint("y=%d", m.y);
-	Clipboard =>		s = sprint("id=%d seq=%d lendata=%d data=%q", m.id, m.seq, len m.data, string m.data);
+	Clipboard =>
+		s = sprint("id=%d seq=%d nclips=%d", m.id, m.seq, len m.l);
+		for(l := m.l; l != nil; l = tl l) {
+			s += sprint("fmt=%d buf=%q", (hd l).t0, string (hd l).t1);
+		}
 	Info =>			s = sprint("topx=%d topy=%d width=%d heigh=%d warpsize=%d x=%d y=%d", m.topx, m.topy, m.width, m.height, m.warpsize, m.x, m.y);
 	Setoptions =>		s = sprint("options=%d", m.options);
 	Getinfo =>		;

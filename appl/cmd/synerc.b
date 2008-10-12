@@ -94,6 +94,7 @@ msec(): big
 
 synergyserve()
 {
+	seq := 0;
 
 	for(;;) {
 		(mm, err) := session.readmsg();
@@ -163,11 +164,15 @@ synergyserve()
 		# Keyrepeat
 		# Key(up|down|repeat)_10
 		Enter =>
-			# seq, mod ?
+			# mod ?
+			seq = m.seq;
 			mousex = m.x;
 			mousey = m.y;
 			mousewrite();
 			say("now have focus");
+
+			# xxx we might want to grab the clipboard, and on leave, reread it & send new version if changed
+
 		Leave =>
 			say("lost focus");
 			mousebtn = 0;
@@ -175,6 +180,17 @@ synergyserve()
 
 		# Grabclipboard
 		# Clipboard;  id, seq;  data
+
+		Screensaver =>
+			# xxx perhaps only use this when we have focus?  or just ignore altogether
+			if(m.started) {
+				fd := sys->open("/dev/vgactl", Sys->OWRITE);
+				if(fd == nil || sys->fprint(fd, "blank") < 0)
+					warn(sprint("vgactl blank: %r"));
+			}
+
+		* =>
+			say("message not handled");
 		}
 		if(resp != nil) {
 			say(sprint("responding with: %s", resp.text()));

@@ -6,6 +6,8 @@ Synergy: module {
 
 	init:	fn();
 
+	Ttext, Tbmp, Thtml, Tmax: con iota;
+
 	Msg: adt {
 		pick {
 		Thello =>
@@ -44,7 +46,7 @@ Synergy: module {
 			y:	int;
 		Clipboard =>
 			id, seq:	int;
-			data:	array of byte;
+			l:	list of ref (int, array of byte);
 		Info =>
 			topx, topy, width, height, warpsize, x, y:	int;
 		Setoptions =>
