@@ -48,7 +48,9 @@ Synergy: module {
 			id, seq:	int;
 			l:	list of ref (int, array of byte);
 		Info =>
-			topx, topy, width, height, warpsize, x, y:	int;
+			topx, topy, width, height: int
+			warpsize:	int;  # obsolete
+			x, y:	int;
 		Setoptions =>
 			options:	int;	# xxx
 		Getinfo =>

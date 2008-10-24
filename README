@@ -1,14 +1,59 @@
-this is code for a synergy client.  perhaps a server in the future
-too.  besides a library to read/write synergy protocol messages,
-only a client has been implemented, and only partially.
+# status
+
+can be used.  problem is writes to /dev/mouse (like acme does) to
+move the mouse.  the synergy server won't know the mouse has moved,
+so has a wrong idea about the local mouse.
+
+
+# about
+
+this is code for a synergy client.  protocol message packing/unpacking
+is in a library.
 
 what it can do:
-- connect to a synergy server
-- write mousemovements to /dev/pointer to update mouse location
-- write keyboard characters to /dev/keyboard to emulate typing characters.  no conversion is being done.
 
-what is left to implement:
-- convert the keyboard codes that come from the server to something a /dev/keyboard reader understands.  handle shift/control/alt/other special keys.
-- provide a new /dev/pointer that also sends clicks
-- find out whether we need to keep writing to original /dev/pointer to update our location.  perhaps only at startup, probably not though.
-- perhaps provide a /dev/keyboard as well, that would mean the usual keyboard on the machine can not be used, so doesn't make make sense.
+- connect to a synergy server
+- write mousemovements to /dev/mousein to update mouse location
+- write keyboard characters to /dev/kbin to emulate typing characters.
+  converted from xorg's key codes (which are a bit like scancode set 1).
+
+
+# install
+
+to install, first make a file "mkconfig" similar to your inferno's
+installation mkconfig (symlink/bind it).  now type "mk install" to
+compile and install.  NOTE: just "mk" does not work, since the
+module files (*.m) will be missing and compilation of source files
+(*.b) will fail.
+
+
+# example
+
+(on plan 9)
+
+bind -a '#Ι' /dev
+emu -c0
+bind -a '#U*/dev' /dev  # get kbin & mousein
+synerc -dd -a net!$synergyserver!24800 $screenwidth $screenheight
+
+
+# documentation
+
+no documentation available.
+
+
+# licence & author
+
+this code is in the public domain.  the code is written by mechiel
+lukkien, reachable at mechiel@xs4all.nl or mechiel@ueber.net.
+
+
+# download
+
+see http://www.ueber.net/code/r/lsynergy for instructions & latest version.
+
+
+# todo
+
+- some xorg key codes are not properly converted, e.g. pgdn, arrows, some of ins/del/home/end, etc.
+- fix problem with synergy server/client having different idea of mouse
