@@ -1,4 +1,5 @@
-Synergy: module {
+Synergy: module
+{
 	PATH:	con "/dis/lib/synergy.dis";
 
 	MAJOR:	con 1;
@@ -48,7 +49,7 @@ Synergy: module {
 			id, seq:	int;
 			l:	list of ref (int, array of byte);
 		Info =>
-			topx, topy, width, height: int
+			topx, topy, width, height: int;
 			warpsize:	int;  # obsolete
 			x, y:	int;
 		Setoptions =>

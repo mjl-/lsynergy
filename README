@@ -20,11 +20,18 @@ what it can do:
 
 # install
 
-to install, first make a file "mkconfig" similar to your inferno's
-installation mkconfig (symlink/bind it).  now type "mk install" to
-compile and install.  NOTE: just "mk" does not work, since the
-module files (*.m) will be missing and compilation of source files
-(*.b) will fail.
+make sure you have $ROOT set, now "mk install" to compile and install
+the files.
+
+when building from within inferno, insert SYSHOST=Inferno and ROOT=
+in the mk invocations to override the values in the mkconfig.
+
+
+# download
+
+get the latest version at:
+
+	http://www.ueber.net/code/r/lsynergy
 
 
 # example
@@ -46,11 +53,6 @@ no documentation available.
 
 this code is in the public domain.  the code is written by mechiel
 lukkien, reachable at mechiel@xs4all.nl or mechiel@ueber.net.
-
-
-# download
-
-see http://www.ueber.net/code/r/lsynergy for instructions & latest version.
 
 
 # todo
