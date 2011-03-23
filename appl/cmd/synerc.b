@@ -5,13 +5,15 @@ include "sys.m";
 	sprint: import sys;
 include "draw.m";
 include "arg.m";
+include "dial.m";
+	dial: Dial;
 include "synergy.m";
 	syn: Synergy;
 	Session, Msg: import syn;
 
 
 dflag: int;
-addr := "net!$synergy!24800";
+addr := "$synergy";
 name: string;
 session: ref Session;
 
@@ -31,11 +33,12 @@ init(nil: ref Draw->Context, args: list of string)
 {
 	sys = load Sys Sys->PATH;
 	arg := load Arg Arg->PATH;
+	dial = load Dial Dial->PATH;
 	syn = load Synergy Synergy->PATH;
 	syn->init();
 
 	# for testing
-	addr = "net!localhost!24800";
+	addr = "localhost";
 	name = sysname();
 
 	arg->init(args);
@@ -65,10 +68,11 @@ init(nil: ref Draw->Context, args: list of string)
 	if(mousefd == nil)
 		fail(sprint("open %q: %r", mousepath));
 
-	(ok, conn) := sys->dial(addr, nil);
-	if(ok < 0)
+	addr = dial->netmkaddr(addr, "net", "24800");
+	cc := dial->dial(addr, nil);
+	if(cc == nil)
 		fail(sprint("dial %s: %r", addr));
-	fd := conn.dfd;
+	fd := cc.dfd;
 	say("have connection");
 
 	err: string;
